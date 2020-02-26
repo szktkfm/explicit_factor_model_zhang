@@ -16,13 +16,13 @@ device = 'cpu'
 
 class Evalueter:
     #def __init__(self, test_data, user_size, metric):
-    def __init__(self, user_size, metric):
+    def __init__(self, user_size):
         self.user_size = user_size
-        self.metric = metric
+        #self.metric = metric
         #self.test_data = test_data
         
     # Cythonでやりたい
-    def get_user_rankinglist(data, target_user):
+    def get_user_rankinglist(self, data, target_user):
         ranking_list = []
         for d in data:
             if target_user == d[0] or target_user == d[-1]:
@@ -31,7 +31,7 @@ class Evalueter:
         return ranking_list
         
         
-    def evaluate_ranking(model, test_posi, test_nega):
+    def evaluate_ranking(self, model, test_posi, test_nega, metric='map'):
         with torch.no_grad():
             #以下をforで回す
             ranking_score_list = []
@@ -39,12 +39,12 @@ class Evalueter:
             ranking_score_list2 = []
             count = 0
 
-            for idx in range(user_size):
+            for idx in range(self.user_size):
 
                 # あるuserのposiなランキングリストをテストデータから持ってくる
                 # nega なランキングリストも持ってくる
-                posi_ranking_list = get_user_rankinglist(test_posi, idx)
-                nega_ranking_list = get_user_rankinglist(test_nega, idx)
+                posi_ranking_list = self.get_user_rankinglist(test_posi, idx)
+                nega_ranking_list = self.get_user_rankinglist(test_nega, idx)
 
                 # ranking_listを取得できなかった場合
                 if len(posi_ranking_list) == 0 or len(nega_ranking_list) == 0:
@@ -65,7 +65,7 @@ class Evalueter:
 
 
                 # PR-AUC, ROC-AUC, NDCGを計算する
-                if self.metric == 'map': # sklearn.metrics.average_precision_score
+                if metric == 'map': # sklearn.metrics.average_precision_score
                     ap = average_precision_score(target_batch, score_list)
                     ranking_score_list1.append(ap) 
 
